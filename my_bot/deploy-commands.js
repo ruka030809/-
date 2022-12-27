@@ -21,7 +21,7 @@ const rest = new REST({ version: '9' }).setToken(token);
 (async () => {
     guildIds.map(async (guildId) => {
         try {
-            await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: {} });
+            await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: [] });
             console.log(`${guildId} 서버 성공`);
         }
         catch (error) {
