@@ -1,21 +1,52 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageActionRow, MessageButton } = require('discord.js');
+const { MessageActionRow, MessageButton, Message } = require('discord.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('뉴버튼')
         .setDescription('뉴버튼 제작'),
     async execute(interaction) {
+
+
+        const buttons = [
+            {
+                customId: "test1",
+                label: "첫번째",
+                style: "PRIMARY",
+                async action(interaction) {
+                    await interaction.reply(`${interaction.user.tag} <--이세끼가 test 1버튼 클릭함`);
+
+                }
+            },
+            {
+                customId: "test2",
+                label: "두번째",
+                style: "SECONDARY",
+                async action(interaction) {
+                    await interaction.update({
+                        content: "버튼2누름",
+                        components: [],
+                    })
+
+                }
+            },
+        ];
+
         const row = new MessageActionRow().addComponents(
-            new MessageButton()
-                .setCustomId("test1")
-                .setLabel("첫번째")
-                .setStyle("PRIMARY")
+            buttons.map((button) => {
+                return new MessageButton()
+                    .setCustomId(button.customId)
+                    .setLabel(button.label)
+                    .setStyle(button.style);
+            })
         );
         await interaction.reply({ content: '버튼...', components: [row] });
 
         const filter = (interaction) => {
-            return interaction.customId === "test1";
+            return buttons.filter(
+                button => button.customId === interaction.customId
+            )
+            //return interaction.customId === "test1" || "test2";
         }
         //만들었다고 적용되는건 아님
         const collector = interaction.channel.createMessageComponentCollector({
@@ -25,14 +56,17 @@ module.exports = {
         });
 
         collector.on("collect", async (interaction) => {
-            //버튼을 클릭했을때 수행
-            if (interaction.customId === "test1") {
-                await interaction.reply(`${interaction.user.tag} <--이세끼가 test 1버튼 클릭함`);
-            }
+            // 배열에 있는 동작을 자동으로 읽음
+            const button = buttons.find(
+                button => button.customId === interaction.customId
+            );
+            await button.action(interaction);
         });
+
 
         collector.on("end", async (collect) => {
             console.log("버튼 시간 초과");
+            await interaction.deleteReply();
         })
 
     },
